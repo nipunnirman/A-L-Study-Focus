@@ -365,7 +365,7 @@ button:disabled {
 }
 .duration-input:focus { border: none; box-shadow: none; }
 
-.duration-presets { display: flex; gap: 0.35rem; margin-left: auto; }
+.duration-presets { display: flex; gap: 0.35rem; margin-left: auto; flex-wrap: wrap; justify-content: flex-end; }
 
 .preset-btn {
   width: auto; padding: 0.18rem 0.45rem;
@@ -545,14 +545,25 @@ button:disabled {
 @media (max-width: 900px) {
   .dashboard-grid { grid-template-columns: 1fr; }
 }
+@media (max-width: 768px) {
+  .navbar h3 { display: none; }
+  .report-header { flex-direction: column; align-items: flex-start; gap: 1rem; }
+}
 @media (max-width: 640px) {
-  .navbar { padding: 0 1rem; }
+  .navbar { padding: 0 1rem; height: 56px; }
   .nav-clock { display: none; }
+  .nav-greeting { display: none; }
   .stat-grid { grid-template-columns: 1fr 1fr; }
+  .container { padding: 1.5rem 1rem; }
+  .timer-card { padding: 1.5rem 1.25rem; }
+  .subject-pills { grid-template-columns: 1fr; }
 }
 @media (max-width: 480px) {
-  .container { padding: 1.5rem 1rem; }
   .stat-grid { grid-template-columns: 1fr; }
+  .nav-btn { padding: 0.38rem 0.5rem; font-size: 0.75rem; }
+  .auth-card { padding: 2rem 1.5rem; }
+  .dashboard-grid { gap: 1.5rem; }
+  .chart-card { padding: 1rem 0; box-shadow: none; border: none; background: transparent; }
 }
 
 /* Circular progress */
