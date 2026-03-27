@@ -2,9 +2,9 @@ const fs = require('fs');
 const path = require('path');
 const Session = require('../models/Session');
 
-const CACHE_DIR = path.join(__dirname, '../../cache');
+const IS_VERCEL = process.env.VERCEL === '1' || process.env.VERCEL_ENV;
+const CACHE_DIR = IS_VERCEL ? '/tmp/cache' : path.join(__dirname, '../../cache');
 
-// Ensure cache directory exists
 if (!fs.existsSync(CACHE_DIR)) {
   fs.mkdirSync(CACHE_DIR, { recursive: true });
 }
