@@ -17,7 +17,8 @@ const Login = () => {
       await login(email, password);
       navigate('/');
     } catch (err) {
-      setError('Invalid credentials. Please try again.');
+      console.error(err);
+      setError(err.response?.data?.msg || err.message || 'Invalid credentials. Please try again.');
     } finally {
       setLoading(false);
     }
