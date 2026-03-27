@@ -1,5 +1,5 @@
 import React from 'react';
-import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, Navigate, NavLink } from 'react-router-dom';
 import { AuthProvider, AuthContext } from './context/AuthContext';
 import Login from './pages/Login';
 import Register from './pages/Register';
@@ -8,7 +8,13 @@ import WeeklyReport from './pages/WeeklyReport';
 
 const PrivateRoute = ({ children }) => {
   const { user, loading } = React.useContext(AuthContext);
-  if (loading) return <div>Loading...</div>;
+  if (loading) return (
+    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: '100vh' }}>
+      <div style={{ textAlign: 'center', color: 'var(--text-muted)' }}>
+        <div style={{ fontFamily: 'DM Mono, monospace', fontSize: '0.85rem', letterSpacing: '0.1em' }}>LOADING…</div>
+      </div>
+    </div>
+  );
   return user ? children : <Navigate to="/login" />;
 };
 
@@ -23,26 +29,39 @@ const Navbar = () => {
 
   const getGreeting = () => {
     const hour = currentTime.getHours();
-    if (hour < 12) return 'Good Morning';
-    if (hour < 18) return 'Good Afternoon';
-    return 'Good Evening';
+    if (hour < 12) return 'Morning';
+    if (hour < 18) return 'Afternoon';
+    return 'Evening';
   };
 
   return (
     <nav className="navbar">
-      <h3>A/L Study Focus</h3>
+      <div className="navbar-brand">
+        <div className="navbar-logo">A</div>
+        <h3>A/L Study Focus</h3>
+      </div>
       {user && (
         <div className="nav-links">
-          <span style={{ marginRight: '1rem', color: '#94a3b8', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
-            {currentTime.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-          </span>
-          <span style={{ color: '#38bdf8', fontWeight: 'bold' }}>
-            {getGreeting()}, {user.name.split(' ')[0]}
-          </span>
-          <button className="nav-btn" onClick={() => window.location.href='/'}>Timer</button>
-          <button className="nav-btn" onClick={() => window.location.href='/report'}>Report</button>
-          <button className="nav-btn" onClick={logout}>Logout</button>
+          <div className="nav-clock">
+            <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+            {currentTime.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' })}
+          </div>
+          <span className="nav-greeting">Good {getGreeting()}, {user.name.split(' ')[0]}</span>
+          <NavLink to="/" end>
+            {({ isActive }) => (
+              <button className={`nav-btn ${isActive ? 'active' : ''}`} onClick={() => window.location.href='/'}>
+                Timer
+              </button>
+            )}
+          </NavLink>
+          <NavLink to="/report">
+            {({ isActive }) => (
+              <button className={`nav-btn ${isActive ? 'active' : ''}`} onClick={() => window.location.href='/report'}>
+                Report
+              </button>
+            )}
+          </NavLink>
+          <button className="nav-btn nav-btn-logout" onClick={logout}>Logout</button>
         </div>
       )}
     </nav>

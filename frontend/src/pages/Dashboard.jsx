@@ -3,6 +3,13 @@ import StudyTimer from '../components/StudyTimer';
 import api from '../api/axios';
 import { AuthContext } from '../context/AuthContext';
 
+const SUBJECT_COLORS = {
+  BIO: '#4ade80',
+  PHYSICS: '#60a5fa',
+  CHEMISTRY: '#f87171',
+  'COMBINE MATHS': '#fbbf24',
+};
+
 const Dashboard = () => {
   const [sessions, setSessions] = useState([]);
   const { user } = useContext(AuthContext);
@@ -10,55 +17,60 @@ const Dashboard = () => {
   const fetchSessions = async () => {
     try {
       const res = await api.get('/sessions');
-      // Limit to 5 recent sessions for dashboard
-      setSessions(res.data.slice(0, 5));
+      // Get today's date at midnight
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+      
+      // Filter for only sessions started today
+      const todaysSessions = res.data.filter(s => new Date(s.startTime) >= today);
+      
+      setSessions(todaysSessions.slice(0, 6));
     } catch (err) {
-      console.error("Error loading sessions from JSON cache", err);
+      console.error('Error loading sessions', err);
     }
   };
 
-  useEffect(() => {
-    fetchSessions();
-  }, []);
+  useEffect(() => { fetchSessions(); }, []);
 
   return (
     <div>
-      <h2 style={{ marginBottom: '2rem', textAlign: 'center', color: '#f8fafc' }}>Your Study Dashboard</h2>
-      
-      <StudyTimer onSessionStop={fetchSessions} />
+      <div className="dashboard-grid">
+        <div>
+          <StudyTimer onSessionStop={fetchSessions} />
+        </div>
 
-      <div style={{ marginTop: '4rem', maxWidth: '600px', margin: '4rem auto 0 auto' }}>
-        <h3 style={{ marginBottom: '1rem', borderBottom: '1px solid rgba(255,255,255,0.1)', paddingBottom: '0.5rem' }}>
-          Recent Sessions (Real-time from Cache)
-        </h3>
-        
-        {sessions.length === 0 ? (
-          <p style={{ color: '#94a3b8' }}>No recent sessions. Start studying to see them here!</p>
-        ) : (
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-            {sessions.map(s => (
-              <div key={s._id} style={{ 
-                background: 'rgba(30, 41, 59, 0.5)', 
-                padding: '1rem', 
-                borderRadius: '0.5rem',
-                display: 'flex',
-                justifyContent: 'space-between',
-                alignItems: 'center'
-              }}>
+        <div>
+          <div className="section-heading">Recent Sessions</div>
+
+          {sessions.length === 0 ? (
+            <div className="empty-state">
+              <div className="empty-icon">📚</div>
+              <p style={{ marginBottom: '0.5rem' }}>No sessions yet</p>
+              <p style={{ fontSize: '0.8rem', opacity: 0.7 }}>Start a study session to see it here</p>
+            </div>
+          ) : (
+            sessions.map(s => (
+              <div key={s._id} className="session-card">
                 <div>
-                  <h4 style={{ color: '#38bdf8' }}>{s.subject}</h4>
-                  <small style={{ color: '#94a3b8' }}>{new Date(s.startTime).toLocaleDateString()}</small>
+                  <div className="session-subject" style={{ color: SUBJECT_COLORS[s.subject] || 'var(--text-primary)' }}>
+                    {s.subject}
+                  </div>
+                  <div className="session-date">
+                    {new Date(s.startTime).toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' })}
+                  </div>
                 </div>
                 <div style={{ textAlign: 'right' }}>
-                  <div style={{ fontWeight: 'bold' }}>{s.actualDuration} / {s.plannedDuration} min</div>
-                  <small style={{ color: s.completed && !s.stoppedEarly ? '#10b981' : '#f59e0b' }}>
-                    {s.completed && !s.stoppedEarly ? 'Completed' : 'Stopped Early'}
-                  </small>
+                  <div className="session-duration">
+                    {s.actualDuration}<span style={{ color: 'var(--text-muted)' }}>/{s.plannedDuration} min</span>
+                  </div>
+                  <span className={`session-status ${s.completed && !s.stoppedEarly ? 'status-complete' : 'status-early'}`}>
+                    {s.completed && !s.stoppedEarly ? '✓ Done' : '⚡ Early'}
+                  </span>
                 </div>
               </div>
-            ))}
-          </div>
-        )}
+            ))
+          )}
+        </div>
       </div>
     </div>
   );
