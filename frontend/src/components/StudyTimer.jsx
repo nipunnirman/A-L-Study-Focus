@@ -126,7 +126,6 @@ const StudyTimer = ({ onSessionStop }) => {
     audio.play().catch(() => {});
     await stopSessionOnServer(false);
     clearStorage();
-    alert('Session complete! Great work!');
     resetTimer();
   };
 
