@@ -36,20 +36,52 @@ const Dashboard = () => {
     // Fetch immediately on mount
     fetchSessions();
 
-    // Poll every 10 seconds — works on any device/browser in real-time
-    const pollInterval = setInterval(fetchSessions, 10000);
-
-    // Refresh when the tab becomes visible again (e.g. user switches back from phone)
-    const handleVisibility = () => {
-      if (document.visibilityState === 'visible') fetchSessions();
+    // Self-healing timer: recursive setTimeout restarts itself every cycle.
+    // Unlike setInterval, this can't "pile up" and survives mobile browser throttling.
+    let timerId;
+    const schedulePoll = () => {
+      timerId = setTimeout(() => {
+        fetchSessions();
+        schedulePoll(); // schedule the next one after this one finishes
+      }, 10000);
     };
-    document.addEventListener('visibilitychange', handleVisibility);
+    schedulePoll();
+
+    // ─── Mobile-critical event hooks ──────────────────────────────────────────
+    // Mobile browsers suspend timers when the screen locks or you switch apps.
+    // These events fire the moment the user comes BACK to the app.
+
+    // 1. Tab becomes visible (works on all platforms)
+    const onVisible = () => {
+      if (document.visibilityState === 'visible') {
+        fetchSessions();
+        clearTimeout(timerId);
+        schedulePoll(); // restart the polling fresh
+      }
+    };
+    document.addEventListener('visibilitychange', onVisible);
+
+    // 2. Window regains focus (desktop + some mobile)
+    const onFocus = () => { fetchSessions(); };
+    window.addEventListener('focus', onFocus);
+
+    // 3. pageshow fires when navigating back on mobile (iOS Safari back swipe)
+    const onPageShow = (e) => { fetchSessions(); };
+    window.addEventListener('pageshow', onPageShow);
+
+    // 4. Internet reconnected → sync immediately
+    const onOnline = () => { fetchSessions(); };
+    window.addEventListener('online', onOnline);
 
     return () => {
-      clearInterval(pollInterval);
-      document.removeEventListener('visibilitychange', handleVisibility);
+      clearTimeout(timerId);
+      document.removeEventListener('visibilitychange', onVisible);
+      window.removeEventListener('focus', onFocus);
+      window.removeEventListener('pageshow', onPageShow);
+      window.removeEventListener('online', onOnline);
     };
   }, []);
+
 
 
   return (
