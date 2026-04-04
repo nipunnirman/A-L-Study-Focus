@@ -21,6 +21,7 @@ const StudyTimer = ({ onSessionStop }) => {
   const [isPaused, setIsPaused] = useState(false);
   const [sessionId, setSessionId] = useState(null);
   const timerRef = useRef(null);
+  const heartbeatRef = useRef(null);
 
   useEffect(() => {
     const savedActive = localStorage.getItem('study_isActive') === 'true';
@@ -47,6 +48,8 @@ const StudyTimer = ({ onSessionStop }) => {
       }
     }
     syncOfflineSessions();
+    window.addEventListener('online', syncOfflineSessions);
+    return () => window.removeEventListener('online', syncOfflineSessions);
   }, []);
 
   useEffect(() => {
@@ -60,11 +63,33 @@ const StudyTimer = ({ onSessionStop }) => {
         localStorage.setItem('study_timeLeft', newTimeLeft.toString());
         if (newTimeLeft <= 0) { clearInterval(timerRef.current); handleComplete(); }
       }, 500);
+      
+      heartbeatRef.current = setInterval(() => {
+        triggerHeartbeat();
+      }, 60000);
     } else {
       clearInterval(timerRef.current);
+      clearInterval(heartbeatRef.current);
     }
-    return () => clearInterval(timerRef.current);
+    return () => {
+      clearInterval(timerRef.current);
+      clearInterval(heartbeatRef.current);
+    };
   }, [isActive, isPaused]);
+
+  const triggerHeartbeat = () => {
+    const savedDuration = parseInt(localStorage.getItem('study_duration'), 10);
+    const savedTimeLeft = parseInt(localStorage.getItem('study_timeLeft'), 10);
+    if (isNaN(savedDuration) || isNaN(savedTimeLeft)) return;
+    
+    let actualDuration = Math.round(((savedDuration * 60) - savedTimeLeft) / 60);
+    if (actualDuration <= 0) actualDuration = 1;
+
+    const currentSessionId = localStorage.getItem('study_sessionId');
+    if (currentSessionId && currentSessionId !== 'offline_started') {
+      api.put(`/sessions/${currentSessionId}/heartbeat`, { actualDuration }).catch(() => {});
+    }
+  };
 
   useEffect(() => {
     if (!isActive) setTimeLeft(duration * 60);

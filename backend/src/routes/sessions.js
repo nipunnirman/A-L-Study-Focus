@@ -11,6 +11,10 @@ router.post('/start', auth, sessionController.startSession);
 // @desc    Stop/complete a study session
 router.put('/:id/stop', auth, sessionController.stopSession);
 
+// @route   PUT api/sessions/:id/heartbeat
+// @desc    Update session duration in real-time
+router.put('/:id/heartbeat', auth, sessionController.updateSessionHeartbeat);
+
 // @route   GET api/sessions
 // @desc    Get all user sessions
 router.get('/', auth, sessionController.getSessions);

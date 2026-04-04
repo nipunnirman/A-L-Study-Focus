@@ -64,6 +64,34 @@ exports.stopSession = async (req, res) => {
   }
 };
 
+exports.updateSessionHeartbeat = async (req, res) => {
+  try {
+    let session = await Session.findById(req.params.id);
+    if (!session) return res.status(404).json({ msg: 'Session not found' });
+
+    if (session.userId.toString() !== req.user.id) {
+      return res.status(401).json({ msg: 'Not authorized' });
+    }
+
+    const { actualDuration } = req.body;
+    
+    session.endTime = new Date();
+    if (actualDuration !== undefined) {
+      session.actualDuration = actualDuration;
+    }
+
+    session = await session.save();
+
+    // Update Cache
+    jsonCache.updateSession(req.user.id, session);
+
+    res.json(session);
+  } catch (err) {
+    console.error(err.message);
+    res.status(500).send('Server Error');
+  }
+};
+
 exports.getSessions = async (req, res) => {
   try {
     // Try to get from JSON cache first
