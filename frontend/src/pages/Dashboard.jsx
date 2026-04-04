@@ -17,7 +17,7 @@ const Dashboard = () => {
   const fetchSessions = async () => {
     try {
       const res = await api.get('/sessions');
-      // Get today's date at midnight
+      // Get today's date at midnight (local time)
       const today = new Date();
       today.setHours(0, 0, 0, 0);
       
@@ -30,13 +30,18 @@ const Dashboard = () => {
     }
   };
 
+  // Called by StudyTimer when a session is stopped — add small delay so DB write completes
+  const handleSessionStop = () => {
+    setTimeout(() => fetchSessions(), 500);
+  };
+
   useEffect(() => { fetchSessions(); }, []);
 
   return (
     <div>
       <div className="dashboard-grid">
         <div>
-          <StudyTimer onSessionStop={fetchSessions} />
+          <StudyTimer onSessionStop={handleSessionStop} />
         </div>
 
         <div>

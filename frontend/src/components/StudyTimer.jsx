@@ -172,20 +172,30 @@ const StudyTimer = ({ onSessionStop }) => {
   };
 
   const stopSessionOnServer = async (stoppedEarly) => {
+    // Capture elapsed time BEFORE clearing anything
     let actualDuration = Math.round(getExactElapsedSeconds() / 60);
     if (actualDuration <= 0) actualDuration = 1;
     const endTime = new Date();
     const startTime = new Date(parseInt(localStorage.getItem('study_startTime'), 10));
+
     if (sessionId && sessionId !== 'offline_started') {
       try {
-        await api.put(`/sessions/${sessionId}/stop`, { actualDuration });
+        await api.put(`/sessions/${sessionId}/stop`, { actualDuration, stoppedEarly });
+        // Try to flush any previously queued offline sessions too
         syncOfflineSessions();
-        if (onSessionStop) onSessionStop();
-      } catch { queueOfflineSession(startTime, endTime, actualDuration, stoppedEarly); }
+      } catch (err) {
+        console.error('Stop failed, queuing offline:', err);
+        // Save to offline queue so it syncs when back online
+        queueOfflineSession(startTime, endTime, actualDuration, stoppedEarly);
+      }
     } else {
+      // Session was started offline — save to queue
       queueOfflineSession(startTime, endTime, actualDuration, stoppedEarly);
       syncOfflineSessions();
     }
+
+    // ALWAYS refresh the session list after stopping
+    if (onSessionStop) onSessionStop();
   };
 
   const queueOfflineSession = (startTime, endTime, actualDur, early) => {

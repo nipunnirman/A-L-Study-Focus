@@ -15,7 +15,7 @@ const jsonCache = {
   // Initialize or rebuild cache from DB
   buildCache: async (userId) => {
     try {
-      const sessions = await Session.find({ userId }).sort({ startTime: -1 });
+      const sessions = await Session.find({ userId }).sort({ startTime: -1 }).lean();
       const filePath = getCacheFilePath(userId);
       fs.writeFileSync(filePath, JSON.stringify(sessions, null, 2));
       return sessions;

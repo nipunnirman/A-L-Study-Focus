@@ -94,20 +94,15 @@ exports.updateSessionHeartbeat = async (req, res) => {
 
 exports.getSessions = async (req, res) => {
   try {
-    // Try to get from JSON cache first
-    let sessions = jsonCache.readCache(req.user.id);
-    
-    if (!sessions) {
-      // Fallback to DB and build cache
-      sessions = await jsonCache.buildCache(req.user.id);
-    }
-
+    // Always rebuild cache from DB to ensure fresh data
+    const sessions = await jsonCache.buildCache(req.user.id);
     res.json(sessions);
   } catch (err) {
     console.error(err.message);
     res.status(500).send('Server Error');
   }
 };
+
 
 exports.syncOfflineSessions = async (req, res) => {
   try {
