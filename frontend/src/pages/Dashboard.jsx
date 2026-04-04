@@ -20,22 +20,37 @@ const Dashboard = () => {
       // Get today's date at midnight (local time)
       const today = new Date();
       today.setHours(0, 0, 0, 0);
-      
-      // Filter for only sessions started today
       const todaysSessions = res.data.filter(s => new Date(s.startTime) >= today);
-      
       setSessions(todaysSessions.slice(0, 6));
     } catch (err) {
       console.error('Error loading sessions', err);
     }
   };
 
-  // Called by StudyTimer when a session is stopped — add small delay so DB write completes
+  // Called by StudyTimer when a session is stopped
   const handleSessionStop = () => {
     setTimeout(() => fetchSessions(), 500);
   };
 
-  useEffect(() => { fetchSessions(); }, []);
+  useEffect(() => {
+    // Fetch immediately on mount
+    fetchSessions();
+
+    // Poll every 10 seconds — works on any device/browser in real-time
+    const pollInterval = setInterval(fetchSessions, 10000);
+
+    // Refresh when the tab becomes visible again (e.g. user switches back from phone)
+    const handleVisibility = () => {
+      if (document.visibilityState === 'visible') fetchSessions();
+    };
+    document.addEventListener('visibilitychange', handleVisibility);
+
+    return () => {
+      clearInterval(pollInterval);
+      document.removeEventListener('visibilitychange', handleVisibility);
+    };
+  }, []);
+
 
   return (
     <div>
