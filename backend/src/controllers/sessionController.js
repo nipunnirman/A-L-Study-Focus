@@ -165,7 +165,9 @@ exports.getWeeklyReport = async (req, res) => {
     }
 
     recentSessions.forEach(session => {
-      if (!session.completed) return;
+      // Allow incomplete sessions if they have an actualDuration > 0
+      if (!session.completed && (!session.actualDuration || session.actualDuration <= 0)) return;
+
       const dateStr = new Date(session.startTime).toISOString().split('T')[0];
       if (report[dateStr] && session.subject) {
         const sub = session.subject.toUpperCase();

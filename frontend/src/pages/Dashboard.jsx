@@ -63,8 +63,8 @@ const Dashboard = () => {
                   <div className="session-duration">
                     {s.actualDuration}<span style={{ color: 'var(--text-muted)' }}>/{s.plannedDuration} min</span>
                   </div>
-                  <span className={`session-status ${s.completed && !s.stoppedEarly ? 'status-complete' : 'status-early'}`}>
-                    {s.completed && !s.stoppedEarly ? '✓ Done' : '⚡ Early'}
+                  <span className={`session-status ${s.completed ? (!s.stoppedEarly ? 'status-complete' : 'status-early') : 'status-early'}`}>
+                    {s.completed ? (!s.stoppedEarly ? '✓ Done' : '⚡ Early') : '⏳ Recorded'}
                   </span>
                 </div>
               </div>
