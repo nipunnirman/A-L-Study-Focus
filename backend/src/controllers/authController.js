@@ -2,7 +2,6 @@ const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const { validationResult } = require('express-validator');
 const User = require('../models/User');
-const jsonCache = require('../cache/jsonCache');
 
 exports.register = async (req, res) => {
   const errors = validationResult(req);
@@ -24,9 +23,6 @@ exports.register = async (req, res) => {
     user.password = await bcrypt.hash(password, salt);
 
     await user.save();
-
-    // Trigger cache build for new user
-    await jsonCache.buildCache(user._id);
 
     const payload = { user: { id: user.id } };
 
@@ -63,9 +59,6 @@ exports.login = async (req, res) => {
     if (!isMatch) {
       return res.status(400).json({ msg: 'Invalid Credentials' });
     }
-
-    // Trigger cache build on login to ensure fresh real-time data
-    await jsonCache.buildCache(user._id);
 
     const payload = { user: { id: user.id } };
 
