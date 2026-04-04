@@ -21,6 +21,22 @@ const PrivateRoute = ({ children }) => {
 const Navbar = () => {
   const { user, logout } = React.useContext(AuthContext);
   const [currentTime, setCurrentTime] = React.useState(new Date());
+  const [isDark, setIsDark] = React.useState(() => {
+    // Read saved preference on first load
+    const saved = localStorage.getItem('theme');
+    if (saved) return saved === 'dark';
+    // Default: follow system preference
+    return window.matchMedia('(prefers-color-scheme: dark)').matches;
+  });
+
+  React.useEffect(() => {
+    if (isDark) {
+      document.documentElement.classList.add('dark');
+    } else {
+      document.documentElement.classList.remove('dark');
+    }
+    localStorage.setItem('theme', isDark ? 'dark' : 'light');
+  }, [isDark]);
 
   React.useEffect(() => {
     const timer = setInterval(() => setCurrentTime(new Date()), 1000);
@@ -61,6 +77,13 @@ const Navbar = () => {
               </button>
             )}
           </NavLink>
+          <button
+              className="dark-toggle"
+              onClick={() => setIsDark(d => !d)}
+              title={isDark ? 'Switch to Light Mode' : 'Switch to Dark Mode'}
+            >
+              {isDark ? '☀️' : '🌙'}
+            </button>
           <button className="nav-btn nav-btn-logout" onClick={logout}>Logout</button>
         </div>
       )}
