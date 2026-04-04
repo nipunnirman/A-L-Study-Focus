@@ -78,11 +78,7 @@ const StudyTimer = ({ onSessionStop }) => {
   }, [isActive, isPaused]);
 
   const triggerHeartbeat = () => {
-    const savedDuration = parseInt(localStorage.getItem('study_duration'), 10);
-    const savedTimeLeft = parseInt(localStorage.getItem('study_timeLeft'), 10);
-    if (isNaN(savedDuration) || isNaN(savedTimeLeft)) return;
-    
-    let actualDuration = Math.round(((savedDuration * 60) - savedTimeLeft) / 60);
+    let actualDuration = Math.round(getExactElapsedSeconds() / 60);
     if (actualDuration <= 0) actualDuration = 1;
 
     const currentSessionId = localStorage.getItem('study_sessionId');
@@ -108,6 +104,27 @@ const StudyTimer = ({ onSessionStop }) => {
   const clearStorage = () => {
     ['study_isActive','study_sessionId','study_subject','study_duration','study_startTime','study_isPaused','study_timeLeft']
       .forEach(k => localStorage.removeItem(k));
+  };
+
+  const getExactElapsedSeconds = () => {
+    const savedStartTime = parseInt(localStorage.getItem('study_startTime'), 10);
+    const savedDuration = parseInt(localStorage.getItem('study_duration'), 10);
+    const savedTimeLeft = parseInt(localStorage.getItem('study_timeLeft'), 10);
+    const savedPaused = localStorage.getItem('study_isPaused') === 'true';
+
+    if (isNaN(savedStartTime) || isNaN(savedDuration)) return 0;
+
+    let elapsedSecs = 0;
+    if (savedPaused && !isNaN(savedTimeLeft)) {
+      elapsedSecs = (savedDuration * 60) - savedTimeLeft;
+    } else {
+      elapsedSecs = Math.floor((Date.now() - savedStartTime) / 1000);
+    }
+    
+    if (elapsedSecs > savedDuration * 60) elapsedSecs = savedDuration * 60;
+    if (elapsedSecs < 0) elapsedSecs = 0;
+
+    return elapsedSecs;
   };
 
   const syncOfflineSessions = async () => {
@@ -155,7 +172,7 @@ const StudyTimer = ({ onSessionStop }) => {
   };
 
   const stopSessionOnServer = async (stoppedEarly) => {
-    let actualDuration = Math.round(((duration * 60) - timeLeft) / 60);
+    let actualDuration = Math.round(getExactElapsedSeconds() / 60);
     if (actualDuration <= 0) actualDuration = 1;
     const endTime = new Date();
     const startTime = new Date(parseInt(localStorage.getItem('study_startTime'), 10));
