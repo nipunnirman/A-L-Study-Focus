@@ -2,6 +2,7 @@ const express = require('express');
 const cors = require('cors');
 const authRoutes = require('./routes/auth');
 const sessionRoutes = require('./routes/sessions');
+const timetableRoutes = require('./routes/timetables');
 
 const app = express();
 
@@ -12,6 +13,7 @@ app.use(express.json({ extended: false }));
 // Routes
 app.use('/api/auth', authRoutes);
 app.use('/api/sessions', sessionRoutes);
+app.use('/api/timetable', timetableRoutes);
 
 // Health check
 app.get('/api/health', (req, res) => {
