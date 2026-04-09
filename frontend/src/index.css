@@ -626,3 +626,239 @@ button:disabled {
 .CircularProgressbar-path { stroke-linecap: round; transition: stroke-dashoffset 0.5s ease; }
 .CircularProgressbar-trail { stroke: var(--progressbar-trail) !important; }
 .CircularProgressbar-text { font-family: 'DM Mono', monospace !important; font-weight: 500; }
+
+/* ─────────────────────────────── TIMETABLE ──────────────────────────────── */
+.timetable-page { animation: slideUp 0.4s ease; }
+
+.tt-grid-container {
+  display: flex;
+  min-width: 780px;
+  position: relative;
+}
+
+/* Time labels column */
+.tt-time-col {
+  width: 68px;
+  flex-shrink: 0;
+}
+
+.tt-time-label {
+  display: flex;
+  align-items: flex-start;
+  justify-content: flex-end;
+  padding-right: 10px;
+  font-family: 'DM Mono', monospace;
+  font-size: 0.62rem;
+  color: var(--text-muted);
+  line-height: 1;
+  padding-top: 2px;
+  border-top: 1px solid var(--border-subtle);
+}
+
+/* Day columns */
+.tt-day-col {
+  flex: 1;
+  min-width: 0;
+  border-left: 1px solid var(--border-subtle);
+}
+
+.tt-day-col.tt-weekend { background: var(--bg-raised); }
+:root.dark .tt-day-col.tt-weekend { background: rgba(255,255,255,0.015); }
+
+.tt-day-header {
+  height: 44px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.4rem;
+  border-bottom: 1px solid var(--border-soft);
+  position: sticky;
+  top: 64px; /* below navbar */
+  background: var(--bg-surface);
+  z-index: 10;
+}
+
+.tt-day-name {
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: var(--text-secondary);
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+
+.tt-day-count {
+  background: var(--gold-dim);
+  color: var(--gold);
+  border-radius: 20px;
+  font-size: 0.62rem;
+  font-weight: 700;
+  padding: 0.05rem 0.4rem;
+  min-width: 18px;
+  text-align: center;
+}
+
+/* Slot cells (clickable grid cells) */
+.tt-slots-wrapper {
+  position: relative;
+  overflow: hidden;
+}
+
+.tt-slot-cell {
+  position: absolute;
+  left: 0; right: 0;
+  border-top: 1px solid var(--border-subtle);
+  cursor: pointer;
+  transition: background 0.15s;
+  z-index: 1;
+}
+
+.tt-slot-cell:hover {
+  background: var(--gold-dim);
+}
+
+/* Timetable blocks */
+.tt-block {
+  position: absolute;
+  left: 3px; right: 3px;
+  border-radius: var(--radius-sm);
+  border: 1px solid;
+  padding: 0.3rem 0.45rem;
+  cursor: pointer;
+  z-index: 2;
+  overflow: hidden;
+  transition: filter 0.15s, transform 0.15s;
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+}
+
+.tt-block:hover {
+  filter: brightness(1.12);
+  transform: translateY(-1px);
+  z-index: 3;
+}
+
+.tt-block-subject {
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  line-height: 1.2;
+}
+
+.tt-block-time {
+  font-family: 'DM Mono', monospace;
+  font-size: 0.6rem;
+  opacity: 0.8;
+  white-space: nowrap;
+}
+
+.tt-block-note {
+  font-size: 0.62rem;
+  opacity: 0.7;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  margin-top: 1px;
+}
+
+.tt-delete-btn {
+  position: absolute;
+  top: 2px; right: 2px;
+  width: 18px; height: 18px;
+  padding: 0;
+  background: rgba(0,0,0,0.15);
+  border: none;
+  border-radius: 4px;
+  color: inherit;
+  font-size: 0.85rem;
+  line-height: 1;
+  cursor: pointer;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  letter-spacing: 0;
+  text-transform: none;
+  font-weight: 400;
+}
+.tt-block:hover .tt-delete-btn { display: flex; }
+.tt-delete-btn:hover {
+  background: rgba(248,113,113,0.35);
+  transform: none;
+  box-shadow: none;
+  filter: none;
+}
+
+/* Add/Edit Panel overlay */
+.tt-panel-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.45);
+  backdrop-filter: blur(4px);
+  z-index: 200;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1rem;
+  animation: fadeIn 0.18s ease;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+.tt-panel {
+  background: var(--bg-surface);
+  border: 1px solid var(--border-soft);
+  border-radius: var(--radius-xl);
+  padding: 2rem 2rem 1.75rem;
+  width: 100%;
+  max-width: 420px;
+  box-shadow: var(--shadow-card);
+  position: relative;
+  animation: slideUp 0.22s ease;
+}
+
+.tt-panel-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1.25rem;
+}
+
+.tt-panel-close {
+  width: 30px; height: 30px;
+  padding: 0;
+  background: var(--bg-raised);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-sm);
+  color: var(--text-muted);
+  font-size: 1.2rem;
+  line-height: 1;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  letter-spacing: 0;
+  text-transform: none;
+  font-weight: 400;
+}
+.tt-panel-close:hover {
+  background: var(--bg-elevated);
+  color: var(--text-primary);
+  transform: none;
+  box-shadow: none;
+  filter: none;
+}
+
+@media (max-width: 640px) {
+  .tt-grid-container { min-width: 560px; }
+  .tt-time-col { width: 48px; }
+  .tt-time-label { font-size: 0.55rem; padding-right: 5px; }
+  .tt-day-name { font-size: 0.65rem; }
+}
+

@@ -5,6 +5,7 @@ import Login from './pages/Login';
 import Register from './pages/Register';
 import Dashboard from './pages/Dashboard';
 import WeeklyReport from './pages/WeeklyReport';
+import Timetable from './pages/Timetable';
 
 const PrivateRoute = ({ children }) => {
   const { user, loading } = React.useContext(AuthContext);
@@ -77,6 +78,13 @@ const Navbar = () => {
               </button>
             )}
           </NavLink>
+          <NavLink to="/timetable">
+            {({ isActive }) => (
+              <button className={`nav-btn ${isActive ? 'active' : ''}`} onClick={() => window.location.href='/timetable'}>
+                Timetable
+              </button>
+            )}
+          </NavLink>
           <button
               className="dark-toggle"
               onClick={() => setIsDark(d => !d)}
@@ -101,6 +109,7 @@ function AppRoutes() {
           <Route path="/register" element={<Register />} />
           <Route path="/" element={<PrivateRoute><Dashboard /></PrivateRoute>} />
           <Route path="/report" element={<PrivateRoute><WeeklyReport /></PrivateRoute>} />
+          <Route path="/timetable" element={<PrivateRoute><Timetable /></PrivateRoute>} />
         </Routes>
       </div>
     </>
