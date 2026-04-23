@@ -503,6 +503,29 @@ button:disabled {
 }
 .session-card:hover { border-color: var(--border-soft); background: var(--bg-elevated); }
 
+.tuition-card {
+  background: var(--bg-surface);
+  border: 1px solid var(--border-soft);
+  border-radius: var(--radius-xl);
+  padding: 1.35rem;
+  margin: 1rem auto 0;
+  max-width: 460px;
+  box-shadow: var(--shadow-card);
+}
+
+.tuition-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.8rem;
+  margin-bottom: 1rem;
+}
+
+.tuition-message {
+  margin-top: 0.7rem;
+  font-size: 0.78rem;
+  color: var(--text-secondary);
+}
+
 .session-subject { font-weight: 600; font-size: 0.88rem; margin-bottom: 0.15rem; }
 .session-date { font-size: 0.72rem; color: var(--text-muted); font-family: 'DM Mono', monospace; }
 
@@ -515,6 +538,27 @@ button:disabled {
   font-size: 0.68rem; font-weight: 600;
   padding: 0.12rem 0.45rem; border-radius: 20px;
   letter-spacing: 0.04em; text-transform: uppercase;
+}
+
+.session-type-pill {
+  font-size: 0.65rem;
+  font-weight: 600;
+  padding: 0.12rem 0.45rem;
+  border-radius: 20px;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.type-individual {
+  background: rgba(74,222,128,0.1);
+  border: 1px solid rgba(74,222,128,0.2);
+  color: #4ade80;
+}
+
+.type-tuition {
+  background: rgba(192,132,252,0.1);
+  border: 1px solid rgba(192,132,252,0.25);
+  color: #c084fc;
 }
 
 .status-complete {
@@ -546,7 +590,7 @@ button:disabled {
 }
 
 .stat-grid {
-  display: grid; grid-template-columns: repeat(3, 1fr);
+  display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
   gap: 0.9rem; margin-bottom: 1.5rem;
 }
 
@@ -609,6 +653,7 @@ button:disabled {
   .navbar { padding: 0 1rem; height: 56px; overflow-x: auto; }
   .nav-clock { display: flex; font-size: 0.7rem; padding: 0.2rem 0.4rem; margin-right: 0.2rem; }
   .nav-greeting { display: none; }
+  .tuition-row { grid-template-columns: 1fr; }
   .stat-grid { grid-template-columns: 1fr 1fr; }
   .container { padding: 1.5rem 1rem; }
   .timer-card { padding: 1.5rem 1.25rem; }

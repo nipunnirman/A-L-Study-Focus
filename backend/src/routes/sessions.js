@@ -7,6 +7,10 @@ const sessionController = require('../controllers/sessionController');
 // @desc    Start a new study session
 router.post('/start', auth, sessionController.startSession);
 
+// @route   POST api/sessions/tuition
+// @desc    Add a completed tuition class session
+router.post('/tuition', auth, sessionController.addTuitionSession);
+
 // @route   PUT api/sessions/:id/stop
 // @desc    Stop/complete a study session
 router.put('/:id/stop', auth, sessionController.stopSession);

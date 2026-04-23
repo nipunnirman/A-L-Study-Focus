@@ -2,6 +2,7 @@ const mongoose = require('mongoose');
 
 const SessionSchema = new mongoose.Schema({
   userId: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
+  sessionType: { type: String, enum: ['individual', 'tuition'], default: 'individual' },
   subject: { type: String, required: true },
   plannedDuration: { type: Number, required: true }, // in minutes
   startTime: { type: Date, default: Date.now },

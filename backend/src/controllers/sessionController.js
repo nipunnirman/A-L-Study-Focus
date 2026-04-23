@@ -6,6 +6,7 @@ exports.startSession = async (req, res) => {
   try {
     const newSession = new Session({
       userId: req.user.id,
+      sessionType: 'individual',
       subject,
       plannedDuration
     });
@@ -13,6 +14,44 @@ exports.startSession = async (req, res) => {
     const session = await newSession.save();
     
     // Update Cache
+    jsonCache.appendSession(req.user.id, session);
+
+    res.json(session);
+  } catch (err) {
+    console.error(err.message);
+    res.status(500).send('Server Error');
+  }
+};
+
+exports.addTuitionSession = async (req, res) => {
+  const { subject, duration, date } = req.body;
+
+  try {
+    const parsedDuration = Number(duration);
+    if (!subject || Number.isNaN(parsedDuration) || parsedDuration <= 0) {
+      return res.status(400).json({ msg: 'Subject and valid duration are required' });
+    }
+
+    const startTime = date ? new Date(date) : new Date();
+    if (Number.isNaN(startTime.getTime())) {
+      return res.status(400).json({ msg: 'Invalid date provided' });
+    }
+
+    const endTime = new Date(startTime.getTime() + parsedDuration * 60000);
+
+    const newSession = new Session({
+      userId: req.user.id,
+      sessionType: 'tuition',
+      subject,
+      plannedDuration: parsedDuration,
+      startTime,
+      endTime,
+      actualDuration: parsedDuration,
+      completed: true,
+      stoppedEarly: false
+    });
+
+    const session = await newSession.save();
     jsonCache.appendSession(req.user.id, session);
 
     res.json(session);
@@ -115,6 +154,7 @@ exports.syncOfflineSessions = async (req, res) => {
     for (const s of sessions) {
       const newSession = new Session({
         userId: req.user.id,
+        sessionType: s.sessionType || 'individual',
         subject: s.subject,
         plannedDuration: s.plannedDuration,
         startTime: s.startTime,
@@ -156,7 +196,14 @@ exports.getWeeklyReport = async (req, res) => {
       const d = new Date();
       d.setDate(d.getDate() - i);
       const dateStr = d.toISOString().split('T')[0];
-      report[dateStr] = { BIO: 0, PHYSICS: 0, CHEMISTRY: 0, 'COMBINE MATHS': 0 };
+      report[dateStr] = {
+        BIO: 0,
+        PHYSICS: 0,
+        CHEMISTRY: 0,
+        'COMBINE MATHS': 0,
+        INDIVIDUAL: 0,
+        TUITION: 0
+      };
     }
 
     recentSessions.forEach(session => {
@@ -165,11 +212,15 @@ exports.getWeeklyReport = async (req, res) => {
 
       const dateStr = new Date(session.startTime).toISOString().split('T')[0];
       if (report[dateStr] && session.subject) {
+        const duration = session.actualDuration || 0;
+        const typeKey = (session.sessionType || 'individual').toUpperCase();
+        report[dateStr][typeKey] = (report[dateStr][typeKey] || 0) + duration;
+
         const sub = session.subject.toUpperCase();
         if (report[dateStr][sub] !== undefined) {
-          report[dateStr][sub] += session.actualDuration || 0;
+          report[dateStr][sub] += duration;
         } else {
-          report[dateStr][sub] = (report[dateStr][sub] || 0) + (session.actualDuration || 0);
+          report[dateStr][sub] = (report[dateStr][sub] || 0) + duration;
         }
       }
     });

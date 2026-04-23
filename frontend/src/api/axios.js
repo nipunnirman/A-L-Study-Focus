@@ -18,4 +18,29 @@ api.interceptors.request.use(
   (error) => Promise.reject(error)
 );
 
+api.interceptors.response.use(
+  (response) => response,
+  (error) => {
+    const status = error?.response?.status;
+    const message = error?.response?.data?.msg || error?.response?.data?.message;
+    const token = localStorage.getItem('token');
+
+    const isAuthError =
+      status === 401 &&
+      !!token &&
+      (message === 'Token is not valid' || message === 'No token, authorization denied');
+
+    if (isAuthError) {
+      localStorage.removeItem('token');
+      localStorage.removeItem('user');
+
+      if (!window.location.pathname.startsWith('/login')) {
+        window.location.href = '/login';
+      }
+    }
+
+    return Promise.reject(error);
+  }
+);
+
 export default api;

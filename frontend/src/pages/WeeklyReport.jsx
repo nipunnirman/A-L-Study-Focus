@@ -44,7 +44,14 @@ const CustomTooltip = ({ active, payload, label }) => {
 
 const WeeklyReport = () => {
   const [data, setData] = useState([]);
-  const [stats, setStats] = useState({ totalHours: 0, dailyAvg: 0, bestSubject: '—', bestSubjectMins: 0 });
+  const [stats, setStats] = useState({
+    totalHours: 0,
+    dailyAvg: 0,
+    bestSubject: '—',
+    bestSubjectMins: 0,
+    individualMins: 0,
+    tuitionMins: 0
+  });
   const [daysFilter, setDaysFilter] = useState(7);
 
   useEffect(() => {
@@ -52,11 +59,15 @@ const WeeklyReport = () => {
       try {
         const res = await api.get(`/sessions/weekly?days=${daysFilter}`);
         let totalMinutes = 0;
+        let totalIndividual = 0;
+        let totalTuition = 0;
         const subjectTotals = {};
 
         const formattedData = res.data.map(item => {
           const dayTotal = SUBJECT_META.reduce((a, s) => a + (item[s.key] || 0), 0);
           totalMinutes += dayTotal;
+          totalIndividual += item.INDIVIDUAL || 0;
+          totalTuition += item.TUITION || 0;
           SUBJECT_META.forEach(s => { subjectTotals[s.key] = (subjectTotals[s.key] || 0) + (item[s.key] || 0); });
           return { ...item, displayDate: new Date(item.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) };
         }).reverse();
@@ -70,6 +81,8 @@ const WeeklyReport = () => {
           dailyAvg: Math.round(totalMinutes / daysFilter),
           bestSubject: bestMeta?.label || '—',
           bestSubjectMins: bestKey?.[1] || 0,
+          individualMins: totalIndividual,
+          tuitionMins: totalTuition,
         });
       } catch (err) {
         console.error('Error loading report', err);
@@ -101,6 +114,14 @@ const WeeklyReport = () => {
         <div className="stat-card blue">
           <div className="stat-label">Top Subject</div>
           <div className="stat-value" style={{ fontSize: '1.1rem', paddingTop: '0.4rem' }}>{stats.bestSubject}</div>
+        </div>
+        <div className="stat-card">
+          <div className="stat-label">Individual</div>
+          <div className="stat-value" style={{ fontSize: '1.6rem', color: '#4ade80' }}>{stats.individualMins}<span className="stat-unit">min</span></div>
+        </div>
+        <div className="stat-card">
+          <div className="stat-label">Tuition</div>
+          <div className="stat-value" style={{ fontSize: '1.6rem', color: '#c084fc' }}>{stats.tuitionMins}<span className="stat-unit">min</span></div>
         </div>
       </div>
 
@@ -135,6 +156,24 @@ const WeeklyReport = () => {
                   fillOpacity={0.85}
                 />
               ))}
+            </BarChart>
+          </ResponsiveContainer>
+        </div>
+      </div>
+
+      <div className="chart-card" style={{ marginTop: '1rem' }}>
+        <div style={{ fontSize: '0.85rem', fontWeight: 600, color: 'var(--text-secondary)', marginBottom: '1.25rem' }}>
+          Weekly Time: Individual + Tuition
+        </div>
+        <div style={{ height: '280px' }}>
+          <ResponsiveContainer width="100%" height="100%">
+            <BarChart data={data} margin={{ top: 10, right: 10, left: -20, bottom: 0 }} barSize={24}>
+              <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.04)" vertical={false} />
+              <XAxis dataKey="displayDate" stroke="var(--text-muted)" tick={{ fill: 'var(--text-muted)', fontSize: 11 }} axisLine={false} tickLine={false} />
+              <YAxis stroke="var(--text-muted)" tick={{ fill: 'var(--text-muted)', fontSize: 11 }} axisLine={false} tickLine={false} unit="m" />
+              <Tooltip content={<CustomTooltip />} cursor={{ fill: 'rgba(255,255,255,0.03)', radius: 6 }} />
+              <Bar dataKey="INDIVIDUAL" name="Individual" stackId="sessionType" fill="#4ade80" radius={[0, 0, 0, 0]} fillOpacity={0.88} />
+              <Bar dataKey="TUITION" name="Tuition" stackId="sessionType" fill="#c084fc" radius={[4, 4, 0, 0]} fillOpacity={0.88} />
             </BarChart>
           </ResponsiveContainer>
         </div>
