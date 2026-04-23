@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import {
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer
 } from 'recharts';
@@ -10,6 +10,9 @@ const SUBJECT_META = [
   { key: 'CHEMISTRY', label: 'Chemistry', color: '#f87171' },
   { key: 'COMBINE MATHS', label: 'Combine Maths', color: '#fbbf24' },
 ];
+
+const toHours = (minutes) => (Number(minutes || 0) / 60);
+const formatHours = (hours) => `${Number(hours || 0).toFixed(1)}h`;
 
 const CustomTooltip = ({ active, payload, label }) => {
   if (!active || !payload?.length) return null;
@@ -28,14 +31,14 @@ const CustomTooltip = ({ active, payload, label }) => {
               <div style={{ width: 8, height: 8, borderRadius: 2, background: entry.fill, flexShrink: 0 }} />
               <span style={{ color: 'var(--text-secondary)', fontSize: '0.76rem' }}>{entry.name}</span>
             </div>
-            <span style={{ color: 'var(--text-primary)', fontFamily: 'DM Mono, monospace', fontSize: '0.76rem', fontWeight: 500 }}>{entry.value}m</span>
+            <span style={{ color: 'var(--text-primary)', fontFamily: 'DM Mono, monospace', fontSize: '0.76rem', fontWeight: 500 }}>{formatHours(entry.value)}</span>
           </div>
         ) : null
       )}
       {total > 0 && (
         <div style={{ borderTop: '1px solid var(--border-subtle)', paddingTop: '0.4rem', marginTop: '0.4rem', display: 'flex', justifyContent: 'space-between' }}>
           <span style={{ color: 'var(--text-muted)', fontSize: '0.72rem', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.04em' }}>Total</span>
-          <span style={{ color: 'var(--gold)', fontFamily: 'DM Mono, monospace', fontSize: '0.76rem', fontWeight: 500 }}>{total}m</span>
+          <span style={{ color: 'var(--gold)', fontFamily: 'DM Mono, monospace', fontSize: '0.76rem', fontWeight: 500 }}>{formatHours(total)}</span>
         </div>
       )}
     </div>
@@ -53,6 +56,18 @@ const WeeklyReport = () => {
     tuitionMins: 0
   });
   const [daysFilter, setDaysFilter] = useState(7);
+
+  const chartData = useMemo(() => {
+    return data.map(item => ({
+      ...item,
+      BIO: toHours(item.BIO),
+      PHYSICS: toHours(item.PHYSICS),
+      CHEMISTRY: toHours(item.CHEMISTRY),
+      'COMBINE MATHS': toHours(item['COMBINE MATHS']),
+      INDIVIDUAL: toHours(item.INDIVIDUAL),
+      TUITION: toHours(item.TUITION),
+    }));
+  }, [data]);
 
   useEffect(() => {
     const fetchReport = async () => {
@@ -127,7 +142,7 @@ const WeeklyReport = () => {
 
       <div className="chart-card">
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.25rem' }}>
-          <div style={{ fontSize: '0.85rem', fontWeight: 600, color: 'var(--text-secondary)' }}>Study Time by Subject</div>
+          <div style={{ fontSize: '0.85rem', fontWeight: 600, color: 'var(--text-secondary)' }}>Study Time by Subject (Hours)</div>
           <div className="legend-pills">
             {SUBJECT_META.map(s => (
               <div key={s.key} className="legend-pill">
@@ -140,10 +155,10 @@ const WeeklyReport = () => {
 
         <div style={{ height: '380px' }}>
           <ResponsiveContainer width="100%" height="100%">
-            <BarChart data={data} margin={{ top: 10, right: 10, left: -20, bottom: 0 }} barSize={28}>
+            <BarChart data={chartData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }} barSize={28}>
               <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.04)" vertical={false} />
               <XAxis dataKey="displayDate" stroke="var(--text-muted)" tick={{ fill: 'var(--text-muted)', fontSize: 11 }} axisLine={false} tickLine={false} />
-              <YAxis stroke="var(--text-muted)" tick={{ fill: 'var(--text-muted)', fontSize: 11 }} axisLine={false} tickLine={false} unit="m" />
+              <YAxis stroke="var(--text-muted)" tick={{ fill: 'var(--text-muted)', fontSize: 11 }} axisLine={false} tickLine={false} unit="h" />
               <Tooltip content={<CustomTooltip />} cursor={{ fill: 'rgba(255,255,255,0.03)', radius: 6 }} />
               {SUBJECT_META.map((s, i) => (
                 <Bar
@@ -163,14 +178,14 @@ const WeeklyReport = () => {
 
       <div className="chart-card" style={{ marginTop: '1rem' }}>
         <div style={{ fontSize: '0.85rem', fontWeight: 600, color: 'var(--text-secondary)', marginBottom: '1.25rem' }}>
-          Weekly Time: Individual + Tuition
+          Weekly Time: Individual + Tuition (Hours)
         </div>
         <div style={{ height: '280px' }}>
           <ResponsiveContainer width="100%" height="100%">
-            <BarChart data={data} margin={{ top: 10, right: 10, left: -20, bottom: 0 }} barSize={24}>
+            <BarChart data={chartData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }} barSize={24}>
               <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.04)" vertical={false} />
               <XAxis dataKey="displayDate" stroke="var(--text-muted)" tick={{ fill: 'var(--text-muted)', fontSize: 11 }} axisLine={false} tickLine={false} />
-              <YAxis stroke="var(--text-muted)" tick={{ fill: 'var(--text-muted)', fontSize: 11 }} axisLine={false} tickLine={false} unit="m" />
+              <YAxis stroke="var(--text-muted)" tick={{ fill: 'var(--text-muted)', fontSize: 11 }} axisLine={false} tickLine={false} unit="h" />
               <Tooltip content={<CustomTooltip />} cursor={{ fill: 'rgba(255,255,255,0.03)', radius: 6 }} />
               <Bar dataKey="INDIVIDUAL" name="Individual" stackId="sessionType" fill="#4ade80" radius={[0, 0, 0, 0]} fillOpacity={0.88} />
               <Bar dataKey="TUITION" name="Tuition" stackId="sessionType" fill="#c084fc" radius={[4, 4, 0, 0]} fillOpacity={0.88} />
